@@ -89,6 +89,8 @@ def print_timed(msg):
 def watch_networks():
     client = docker.DockerClient()
 
+    skipped_networks = set()
+
     try:
         while not exit_event.is_set():
             services_successful = False
@@ -108,7 +110,10 @@ def watch_networks():
                 configs: List[Dict[str, Any]] = network.attrs['IPAM']['Config']
 
                 if configs == None:
-                    print_timed(f"no config for network {network.attrs['Name']}, skipping...")
+                    if network.attrs['Name'] not in skipped_networks:
+                        print_timed(f"skipping network {network.attrs['Name']} with no config...")
+                    if network.attrs['Name'] not in skipped_networks:
+                        skipped_networks.add(network.attrs['Name'])
                     continue
 
                 # why is this a list?
