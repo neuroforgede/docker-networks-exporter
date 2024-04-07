@@ -107,12 +107,18 @@ def watch_networks():
             for network in networks:
                 configs: List[Dict[str, Any]] = network.attrs['IPAM']['Config']
 
+                if configs == None:
+                    print_timed(f"no config for network {network.attrs['Name']}, skipping...")
+                    continue
+
                 # why is this a list?
-                config = next(filter(lambda x: 'Subnet' in x, configs), None)      
+                relevant_configs = [config for config in configs if 'Subnet' in config] 
 
                 # config is none for e.g. Host or none driver
-                if config is None:
+                if len(relevant_configs) == 0:
                     continue
+
+                config = relevant_configs[0]
 
                 network_drivers_by_id[network.attrs['Id']] = network.attrs['Driver']
                 network_id_to_name[network.attrs['Id']] = network.attrs['Name']
